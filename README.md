@@ -125,3 +125,40 @@ The API calculates the estimated tax refund using the following logic:
 * The comparables data is retrieved from an external API endpoint: `http://34.28.139.127:8082/comp?pin={{pin}}` 
 * The PIN in the request payload should be stripped of any non-numeric characters. 
 * Go to `https://www.cookcountyassessor.com/pin/{{pin}}` to learn more about an individual property. 
+
+## Suggested Improvements:
+
+### Verbose Parameter in API Response:
+
+* Add a query parameter `?verbose=true` to the `/refund` endpoint to return a detailed breakdown of the refund calculation by year.
+* This will provide more transparency into how the `totalRefund` is derived.
+* Example of the extended response:
+
+    ```json
+    {
+        "pin": "26062070090000",
+        "yearsEligible": 3,
+        "totalRefund": 7043.40,
+        "breakdown": {
+            "2021": 2100.50,
+            "2022": 2450.30,
+            "2023": 2492.60
+        }
+    }
+    ```
+
+### Enhanced Comparables Filtering:
+
+* Currently, the API uses all comparable properties returned by the external API.
+* To improve accuracy, consider filtering these comparables based on:
+    * **Neighborhood Similarity:** Only include properties in the same or very similar neighborhoods. This assumes the comparables API provides neighborhood information.
+    * **Market Similarity:** Further refine the selection by considering properties with similar characteristics (e.g., property type, age, style).
+* **Weighted Comparables:**
+    * Instead of a simple average, assign weights to each comparable property to give more importance to the most relevant ones.
+    * Example: Weight by square footage similarity: `weight = 1 / abs(property_square_footage - comparable_square_footage)`.  Properties with closer square footage would have higher weights.
+    * Other weighting factors could include:
+        * Proximity
+        * Age of property
+        * Number of bedrooms/bathrooms
+
+These enhancements would make the refund estimates more precise and provide users with more detailed information.
