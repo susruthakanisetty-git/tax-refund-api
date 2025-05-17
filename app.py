@@ -68,8 +68,21 @@ def calculate_refund(pin, comparables_data):
     if not comparables:
         return {"pin": pin, "yearsEligible": 0, "totalRefund": 0}
 
-    
-    avg_assessed_value = sum(comp['assessed value'] for comp in comparables) / len(comparables)
+    total_weight = 0
+    weighted_sum = 0
+    property_square_foot= property_data.get('building sqft')
+    if property_square_foot is None:
+        avg_assessed_value = sum(comp['assessed value'] for comp in comparables) / len(comparables)
+    else:
+        #Calculate average based on square foot of comparables
+        for comp in comparables:
+            comparable_square_foot = comp.get('building sqft')
+            if comparable_square_foot is not None:
+                # Calculate weight based on square foot difference
+                weight = 1 / (abs(property_square_foot - comparable_square_foot) + 1)  # Adding 1 to avoid division by zero
+                total_weight += weight
+                weighted_sum += comp['assessed value'] * weight
+        avg_assessed_value = weighted_sum / total_weight if total_weight > 0 else 0
     
     if property_data['assessed value'] <= avg_assessed_value:
         return {"pin": pin, "yearsEligible": 0, "totalRefund": 0}
